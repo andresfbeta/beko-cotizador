@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotizador — Hostal Beko</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f0ebe3;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 16px 60px;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ─── Card base ─────────────────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* ─── Header ────────────────────────────────────────────────────────────── */
+    .header {
+      background: #4d5229;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-badge {
+      background: #f07a3e;
+      border-radius: 9px;
+      padding: 6px 10px 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .logo-badge .hostal { font-size: 7px; color: #fff; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 1px; }
+    .logo-badge .beko   { font-size: 22px; color: #fff; font-weight: 800; font-style: italic; letter-spacing: -0.5px; }
+    .header-text h1 { font-size: 15px; font-weight: 700; color: #fff; }
+    .header-text p  { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 3px; font-weight: 400; }
+
+    /* ─── Form body ─────────────────────────────────────────────────────────── */
+    .body { padding: 24px; }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.9px;
+      text-transform: uppercase;
+      color: #b0a898;
+      margin-bottom: 12px;
+    }
+    .section-label + * { /* reset */ }
+    .body > .section-label:not(:first-child) { margin-top: 22px; }
+
+    /* File drop */
+    .file-zone {
+      border: 1.5px dashed #ddd8d1;
+      border-radius: 10px;
+      padding: 18px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #faf8f5;
+    }
+    .file-zone:hover { border-color: #4d5229; background: #f2efe8; }
+    .file-zone.loaded { border-style: solid; border-color: #4d5229; background: #f2efe8; }
+    .file-zone input { display: none; }
+    .file-icon  { font-size: 20px; margin-bottom: 5px; }
+    .file-label { font-size: 12px; color: #999; font-weight: 400; }
+    .file-zone.loaded .file-label { color: #4d5229; font-weight: 600; }
+
+    /* Form grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #999;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    input[type="date"],
+    input[type="number"],
+    input[type="text"] {
+      border: 1.5px solid #e5e0d8;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      color: #1a1a1a;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      width: 100%;
+      -webkit-appearance: none;
+      font-weight: 400;
+    }
+    input:focus {
+      border-color: #4d5229;
+      box-shadow: 0 0 0 3px rgba(77,82,41,0.1);
+    }
+    input[readonly] {
+      background: #f4f1ea;
+      color: #4d5229;
+      font-weight: 600;
+      cursor: default;
+    }
+    input::placeholder { color: #ccc; }
+
+    /* ─── Botón ─────────────────────────────────────────────────────────────── */
+    .btn {
+      width: 100%;
+      padding: 12px 16px;
+      background: #4d5229;
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.18s, opacity 0.18s;
+      margin-top: 22px;
+      letter-spacing: 0.1px;
+    }
+    .btn:hover:not(:disabled) { background: #3a3e1e; }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .status { text-align: center; font-size: 12px; margin-top: 10px; min-height: 16px; color: #4d5229; font-weight: 500; }
+    .status.error { color: #c0392b; }
+    .hint { font-size: 11px; color: #c0b8ad; text-align: center; margin-top: 6px; }
+
+    /* ─── Preview ───────────────────────────────────────────────────────────── */
+    .preview-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+      display: none;
+    }
+
+    .prev-header {
+      background: #4d5229;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .prev-header .logo-badge { }
+    .prev-cotnum {
+      font-size: 10px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .prev-body { padding: 22px 24px 28px; }
+
+    /* Meta encabezado carta */
+    .prev-meta { margin-bottom: 18px; }
+    .prev-meta .fecha-ciudad { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 10px; }
+    .prev-meta .dest-nombre  { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 1px; }
+    .prev-meta .saludo       { font-size: 12px; color: #666; }
+
+    /* Divisor */
+    .divider { height: 1px; background: #eee; margin: 16px 0; }
+
+    /* Título sección */
+    .seccion-tit {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    /* Tabla de cotización */
+    .cot-table { width: 100%; border-collapse: collapse; }
+    .cot-table tr { border-bottom: 1px solid #f0ebe3; }
+    .cot-table tr:last-child { border-bottom: none; }
+    .cot-table td {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #555;
+      font-weight: 400;
+    }
+    .cot-table td:last-child {
+      text-align: right;
+      font-weight: 600;
+      color: #1a1a1a;
+      white-space: nowrap;
+    }
+    .cot-table tr.total-row td {
+      background: #4d5229;
+      color: #fff !important;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* Bloque descuento */
+    .desc-bloque {
+      font-size: 11.5px;
+      color: #555;
+      line-height: 1.55;
+      margin: 14px 0 12px;
+      padding: 10px 13px;
+      background: #f6f3ec;
+      border-radius: 8px;
+      border-left: 3px solid #4d5229;
+    }
+    .desc-bloque strong { color: #4d5229; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ═══════ FORMULARIO ═══════ -->
+  <div class="card">
+    <div class="header">
+      <div class="logo-badge">
+        <span class="hostal">Hostal</span>
+        <span class="beko">beko</span>
+      </div>
+      <div class="header-text">
+        <h1>Generador de Cotización</h1>
+        <p>Completa los campos y descarga el PDF</p>
+      </div>
+    </div>
+
+    <div class="body">
+
+      <div class="section-label">1 — Template PDF</div>
+      <div class="file-zone" id="fileDrop" onclick="document.getElementById('pdfInput').click()">
+        <div class="file-icon">📄</div>
+        <div class="file-label" id="fileLabel">Cargando plantilla…</div>
+        <input type="file" id="pdfInput" accept=".pdf">
+      </div>
+
+      <div class="section-label">2 — Encabezado de la carta</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Fecha del documento</label>
+          <input type="date" id="fechaDoc">
+        </div>
+        <div class="field">
+          <label>Ciudad</label>
+          <input type="text" id="ciudad" value="Cali" placeholder="Cali">
+        </div>
+        <div class="field full">
+          <label>Nombre empresa o persona</label>
+          <input type="text" id="destinatario" placeholder="Ej: Jorge Gaitan / Empresa XYZ">
+        </div>
+      </div>
+
+      <div class="section-label">3 — Datos de la reserva</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Fecha de ingreso</label>
+          <input type="date" id="fechaIngreso">
+        </div>
+        <div class="field">
+          <label>Fecha de salida</label>
+          <input type="date" id="fechaSalida">
+        </div>
+        <div class="field">
+          <label>Nº de personas</label>
+          <input type="number" id="personas" min="1" max="26" placeholder="26">
+        </div>
+        <div class="field">
+          <label>Noches (auto)</label>
+          <input type="number" id="noches" placeholder="—" readonly>
+        </div>
+        <div class="field full">
+          <label>Valor por persona / noche ($)</label>
+          <input type="number" id="valorNoche" min="0" step="1000" placeholder="45.000">
+        </div>
+      </div>
+
+      <button class="btn" id="btnGenerar" onclick="generarPDF()" disabled>
+        📥 Generar y descargar PDF
+      </button>
+      <div class="status" id="status"></div>
+      <div class="hint">El PDF se descarga directamente en tu equipo</div>
+    </div>
+  </div>
+
+  <!-- ═══════ PREVIEW ═══════ -->
+  <div class="preview-card" id="previewCard">
+    <div class="prev-header">
+      <div class="logo-badge">
+        <span class="hostal">Hostal</span>
+        <span class="beko">beko</span>
+      </div>
+      <span class="prev-cotnum">Cotización #2024-01</span>
+    </div>
+    <div class="prev-body">
+      <div class="prev-meta">
+        <div class="fecha-ciudad" id="prev-fechaCiudad">—</div>
+        <div class="dest-nombre" id="prev-destinatario">—</div>
+        <div class="saludo">Cordial saludo.</div>
+      </div>
+      <div class="divider"></div>
+      <div class="seccion-tit">Detalles de la cotización</div>
+      <table class="cot-table">
+        <tr><td>Fecha de ingreso</td><td id="p1-fi">—</td></tr>
+        <tr><td>Fecha salida</td><td id="p1-fs">—</td></tr>
+        <tr><td>Número de personas</td><td id="p1-pn">—</td></tr>
+        <tr><td>Cantidad de noches</td><td id="p1-nc">—</td></tr>
+        <tr><td>Valor por persona por noche</td><td id="p1-vn">—</td></tr>
+        <tr class="total-row"><td>Valor total de la reserva</td><td id="p1-total">—</td></tr>
+      </table>
+      <div class="desc-bloque">
+        Si se realiza reserva por la totalidad del Hostal se podría hacer un descuento del 11% quedando el valor por persona por noche en <strong id="prev-vDesc">—</strong>.
+      </div>
+      <table class="cot-table">
+        <tr><td>Fecha de ingreso</td><td id="p2-fi">—</td></tr>
+        <tr><td>Fecha salida</td><td id="p2-fs">—</td></tr>
+        <tr><td>Número de personas</td><td id="p2-pn">—</td></tr>
+        <tr><td>Cantidad de noches</td><td id="p2-nc">—</td></tr>
+        <tr><td>Valor por persona por noche</td><td id="p2-vn">—</td></tr>
+        <tr class="total-row"><td>Valor total de la reserva</td><td id="p2-total">—</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                 'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  /* ─── COORDENADAS PDF (verificadas con pdfplumber) ─────────────────────────
+     Sistema pdf-lib: origen esquina inferior-izquierda (Y crece hacia arriba)
+     Conversión: pdf_lib_y = 792 - pdfplumber_bottom
+
+     ENCABEZADO
+     [FECHA - EDITABLE]   pdfplumber top=60 bottom=70   → text_y=724  cover_y=722  cover_h=12
+     Cali – Colombia      pdfplumber top=75 bottom=85   → text_y=709  cover_y=707  cover_h=12
+     [NOMBRE EMPRESA...]  pdfplumber top=105 bottom=115 → text_y=679  cover_y=677  cover_h=12
+
+     TABLA 1 (filas de 20px, alineadas con los labels)
+     Ingreso  label top=389 → fila top=381 bottom=401 → text_y=395 cover_y=391 h=20
+     Salida   label top=409 → fila top=401 bottom=421 → text_y=375 cover_y=371 h=20
+     Personas label top=429 → fila top=421 bottom=441 → text_y=355 cover_y=351 h=20
+     Noches   label top=449 → fila top=441 bottom=461 → text_y=335 cover_y=331 h=20
+     Valor    label top=469 → fila top=461 bottom=481 → text_y=315 cover_y=311 h=20
+     Total    rect  top=485 bottom=517                 → text_y=285 cover_y=275 h=32
+
+     TABLA 2 (misma lógica, desplazada ~206px hacia abajo en pdfplumber)
+     Ingreso  label top=595 → fila top=587 bottom=607 → text_y=189 cover_y=185 h=20
+     Salida   label top=615 → fila top=607 bottom=627 → text_y=169 cover_y=165 h=20
+     Personas label top=635 → fila top=627 bottom=647 → text_y=149 cover_y=145 h=20
+     Noches   label top=655 → fila top=647 bottom=667 → text_y=129 cover_y=125 h=20
+     Valor    label top=675 → fila top=667 bottom=687 → text_y=109 cover_y=105 h=20
+     Total    rect  top=691 bottom=723                 → text_y=79  cover_y=69  h=32
+  ─────────────────────────────────────────────────────────────────────────── */
+
+  // Columna de valores: empieza en x=380, termina en x=490 (margen derecho tabla)
+  const VAL_COVER_X  = 370;   // inicio cobertura columna valores
+  const VAL_COVER_W  = 125;   // ancho (hasta x=495)
+  const VAL_TEXT_XR  = 490;   // right edge para alinear texto a la derecha
+
+  // Encabezado: columna izquierda
+  const HDR_X = 38;
+
+  // Tablas
+  const T1 = [
+    { text_y: 395, cover_y: 391, h: 20 },  // ingreso
+    { text_y: 375, cover_y: 371, h: 20 },  // salida
+    { text_y: 355, cover_y: 351, h: 20 },  // personas
+    { text_y: 335, cover_y: 331, h: 20 },  // noches
+    { text_y: 315, cover_y: 311, h: 20 },  // valor/noche
+    { text_y: 285, cover_y: 275, h: 32, isTotal: true },  // total
+  ];
+  const T2 = [
+    { text_y: 189, cover_y: 185, h: 20 },
+    { text_y: 169, cover_y: 165, h: 20 },
+    { text_y: 149, cover_y: 145, h: 20 },
+    { text_y: 129, cover_y: 125, h: 20 },
+    { text_y: 109, cover_y: 105, h: 20 },
+    { text_y:  79, cover_y:  69, h: 32, isTotal: true },
+  ];
+
+  let pdfBytes = null;
+  const TEMPLATE_PDF = 'cotizacion.pdf';
+
+  function markTemplateLoaded(name) {
+    document.getElementById('fileDrop').classList.add('loaded');
+    document.getElementById('fileLabel').innerHTML =
+      `✅  <strong>${name}</strong> listo <span style="font-weight:400;color:#999">(clic para cambiar)</span>`;
+    checkReady();
+  }
+
+  function markTemplateError(msg) {
+    document.getElementById('fileDrop').classList.remove('loaded');
+    document.getElementById('fileLabel').innerHTML =
+      `⚠️ ${msg}<br><span style="font-weight:400">Haz clic para cargar <strong>${TEMPLATE_PDF}</strong></span>`;
+  }
+
+  // ── Precarga automática del template ───────────────────────────────────────
+  (async function loadDefaultTemplate() {
+    const label = document.getElementById('fileLabel');
+    try {
+      label.textContent = 'Cargando plantilla…';
+      const res = await fetch(TEMPLATE_PDF + '?v=1', { cache: 'force-cache' });
+      if (!res.ok) throw new Error(`No se encontró ${TEMPLATE_PDF} (${res.status})`);
+      const buf = await res.arrayBuffer();
+      if (!buf || buf.byteLength < 1000) throw new Error('El archivo PDF está vacío o incompleto');
+      pdfBytes = buf;
+      markTemplateLoaded(TEMPLATE_PDF);
+    } catch (err) {
+      markTemplateError(err.message || 'Error al precargar');
+      console.warn('No se pudo precargar el PDF:', err);
+    }
+  })();
+
+  // ── Fecha actual ────────────────────────────────────────────────────────────
+  (function() {
+    const hoy = new Date();
+    const y = hoy.getFullYear();
+    const m = String(hoy.getMonth()+1).padStart(2,'0');
+    const d = String(hoy.getDate()).padStart(2,'0');
+    document.getElementById('fechaDoc').value = `${y}-${m}-${d}`;
+    actualizarPreview();
+  })();
+
+  // ── Carga PDF manual (opcional, para cambiar plantilla) ─────────────────────
+  document.getElementById('pdfInput').addEventListener('change', async e => {
+    const file = e.target.files[0]; if (!file) return;
+    pdfBytes = await file.arrayBuffer();
+    markTemplateLoaded(file.name);
+  });
+
+  // ── Helpers formato ─────────────────────────────────────────────────────────
+  function fmtFecha(s) {
+    if (!s) return '';
+    const [y,m,d] = s.split('-').map(Number);
+    return `${MESES[m-1]} ${d}, ${y}`;
+  }
+  function fmtCOP(n) {
+    return '$ ' + n.toLocaleString('es-CO');
+  }
+
+  // ── Cálculo noches ──────────────────────────────────────────────────────────
+  function calcNoches() {
+    const fi = document.getElementById('fechaIngreso').value;
+    const fs = document.getElementById('fechaSalida').value;
+    if (fi && fs) {
+      const d = Math.round((new Date(fs)-new Date(fi))/86400000);
+      document.getElementById('noches').value = d > 0 ? d : '';
+    } else {
+      document.getElementById('noches').value = '';
+    }
+    actualizarPreview();
+  }
+
+  document.getElementById('fechaIngreso').addEventListener('change', calcNoches);
+  document.getElementById('fechaSalida').addEventListener('change', calcNoches);
+  ['personas','valorNoche'].forEach(id =>
+    document.getElementById(id).addEventListener('input', actualizarPreview)
+  );
+  ['destinatario','ciudad','fechaDoc'].forEach(id => {
+    document.getElementById(id).addEventListener('input',  actualizarPreview);
+    document.getElementById(id).addEventListener('change', actualizarPreview);
+  });
+
+  // ── Preview ─────────────────────────────────────────────────────────────────
+  function actualizarPreview() {
+    const fi       = document.getElementById('fechaIngreso').value;
+    const fs       = document.getElementById('fechaSalida').value;
+    const personas = parseInt(document.getElementById('personas').value)   || 0;
+    const noches   = parseInt(document.getElementById('noches').value)     || 0;
+    const valor    = parseInt(document.getElementById('valorNoche').value) || 0;
+    const fechaDoc = document.getElementById('fechaDoc').value;
+    const ciudad   = document.getElementById('ciudad').value.trim() || 'Cali';
+    const dest     = document.getElementById('destinatario').value.trim();
+
+    // Encabezado carta
+    const fechaCiudadStr = fechaDoc
+      ? `${fmtFecha(fechaDoc)}\n${ciudad} – Colombia`
+      : `—\n${ciudad} – Colombia`;
+    document.getElementById('prev-fechaCiudad').innerHTML =
+      fechaCiudadStr.replace('\n','<br>');
+    document.getElementById('prev-destinatario').textContent = dest || '—';
+
+    // Tablas
+    const hayTabla = fi && fs && personas > 0 && noches > 0 && valor > 0;
+    if (hayTabla) {
+      const total1 = personas * noches * valor;
+      const vDesc  = Math.round(valor * 0.89);
+      const total2 = personas * noches * vDesc;
+
+      document.getElementById('p1-fi').textContent    = fmtFecha(fi);
+      document.getElementById('p1-fs').textContent    = fmtFecha(fs);
+      document.getElementById('p1-pn').textContent    = personas;
+      document.getElementById('p1-nc').textContent    = noches;
+      document.getElementById('p1-vn').textContent    = fmtCOP(valor);
+      document.getElementById('p1-total').textContent = fmtCOP(total1);
+      document.getElementById('prev-vDesc').textContent = fmtCOP(vDesc);
+      document.getElementById('p2-fi').textContent    = fmtFecha(fi);
+      document.getElementById('p2-fs').textContent    = fmtFecha(fs);
+      document.getElementById('p2-pn').textContent    = personas;
+      document.getElementById('p2-nc').textContent    = noches;
+      document.getElementById('p2-vn').textContent    = fmtCOP(vDesc);
+      document.getElementById('p2-total').textContent = fmtCOP(total2);
+    } else {
+      ['p1-fi','p1-fs','p1-pn','p1-nc','p1-vn','p1-total',
+       'p2-fi','p2-fs','p2-pn','p2-nc','p2-vn','p2-total'].forEach(id =>
+        document.getElementById(id).textContent = '—'
+      );
+      document.getElementById('prev-vDesc').textContent = '—';
+    }
+
+    const show = fechaDoc || dest || hayTabla;
+    document.getElementById('previewCard').style.display = show ? 'block' : 'none';
+    checkReady();
+  }
+
+  function checkReady() {
+    const fi       = document.getElementById('fechaIngreso').value;
+    const fs       = document.getElementById('fechaSalida').value;
+    const personas = parseInt(document.getElementById('personas').value)   || 0;
+    const noches   = parseInt(document.getElementById('noches').value)     || 0;
+    const valor    = parseInt(document.getElementById('valorNoche').value) || 0;
+    document.getElementById('btnGenerar').disabled =
+      !(pdfBytes && fi && fs && personas>0 && noches>0 && valor>0);
+  }
+
+  // ── Generación PDF ──────────────────────────────────────────────────────────
+  async function generarPDF() {
+    const status = document.getElementById('status');
+    status.className = 'status';
+    status.textContent = 'Procesando...';
+
+    try {
+      const fi       = document.getElementById('fechaIngreso').value;
+      const fs       = document.getElementById('fechaSalida').value;
+      const personas = parseInt(document.getElementById('personas').value);
+      const noches   = parseInt(document.getElementById('noches').value);
+      const valor    = parseInt(document.getElementById('valorNoche').value);
+      const fechaDoc = document.getElementById('fechaDoc').value;
+      const ciudad   = document.getElementById('ciudad').value.trim() || 'Cali';
+      const dest     = document.getElementById('destinatario').value.trim();
+
+      const total1 = personas * noches * valor;
+      const vDesc  = Math.round(valor * 0.89);
+      const total2 = personas * noches * vDesc;
+
+      const { PDFDocument, StandardFonts, rgb } = PDFLib;
+      const pdfDoc  = await PDFDocument.load(pdfBytes);
+      const page    = pdfDoc.getPages()[0];
+      const fontReg = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBd  = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      // Colores
+      const C_WHITE = rgb(1,    1,    1   );
+      const C_OLIVE = rgb(0.302,0.322,0.161);
+      const C_DARK  = rgb(0.15, 0.15, 0.15);
+      const C_WHITE_TXT = rgb(1,1,1);
+
+      /* ── Escribe un valor en la columna derecha de la tabla ─────────────────
+         - Borra el área con un rect del color correcto
+         - Escribe el texto right-aligned dentro de VAL_TEXT_XR
+      */
+      function putValue(text, row) {
+        const { text_y, cover_y, h, isTotal } = row;
+        const bgColor   = isTotal ? C_OLIVE : C_WHITE;
+        const textColor = isTotal ? C_WHITE_TXT : C_DARK;
+        const font      = isTotal ? fontBd : fontReg;
+        const fs        = isTotal ? 10 : 9.5;
+
+        // Rect de cobertura (borra placeholder del PDF)
+        page.drawRectangle({
+          x: VAL_COVER_X, y: cover_y,
+          width: VAL_COVER_W, height: h,
+          color: bgColor,
+        });
+
+        // Texto right-aligned
+        const tw = font.widthOfTextAtSize(text, fs);
+        page.drawText(text, {
+          x: VAL_TEXT_XR - tw, y: text_y,
+          size: fs, font, color: textColor,
+        });
+      }
+
+      /* ── Sobrescribe texto en el encabezado izquierdo ───────────────────────
+         - Borra el placeholder con rect blanco
+         - Escribe el nuevo texto
+      */
+      function putHeader(text, x, text_y, cover_y, cover_w, cover_h) {
+        page.drawRectangle({
+          x, y: cover_y, width: cover_w, height: cover_h,
+          color: C_WHITE,
+        });
+        page.drawText(text, {
+          x, y: text_y,
+          size: 9.5, font: fontReg, color: C_DARK,
+        });
+      }
+
+      // ── ENCABEZADO ──────────────────────────────────────────────────────────
+      // [FECHA - EDITABLE] → texto en y=724, rect en y=722 h=12, x=38 w=200
+      if (fechaDoc) {
+        putHeader(fmtFecha(fechaDoc), HDR_X, 724, 722, 200, 12);
+      }
+
+      // Cali – Colombia → texto en y=709, rect en y=707 h=12, x=38 w=160
+      // Siempre se sobreescribe (ciudad puede cambiar)
+      putHeader(`${ciudad} – Colombia`, HDR_X, 709, 707, 180, 12);
+
+      // [NOMBRE EMPRESA O PERSONA - EDITABLE] → texto en y=679, rect y=677 h=12, x=38 w=300
+      if (dest) {
+        putHeader(dest, HDR_X, 679, 677, 340, 12);
+      }
+
+      // ── TABLA 1 ─────────────────────────────────────────────────────────────
+      const vals1 = [
+        fmtFecha(fi), fmtFecha(fs),
+        String(personas), String(noches),
+        fmtCOP(valor), fmtCOP(total1),
+      ];
+      T1.forEach((row, i) => putValue(vals1[i], row));
+
+      // ── TABLA 2 ─────────────────────────────────────────────────────────────
+      const vals2 = [
+        fmtFecha(fi), fmtFecha(fs),
+        String(personas), String(noches),
+        fmtCOP(vDesc), fmtCOP(total2),
+      ];
+      T2.forEach((row, i) => putValue(vals2[i], row));
+
+      // ── Redibujar líneas grises divisorias ───────────────────────────────────
+      // Los rects blancos de cobertura borran las líneas del PDF → las redibujamos
+      // Color: gris claro del PDF original (medido visualmente ~rgb 0.75)
+      const C_LINE = rgb(0.75, 0.75, 0.75);
+      const LINE_X0 = 117, LINE_X1 = 495;
+      // Coordenadas pdf-lib (y desde abajo): 792 - pdfplumber_top de cada línea
+      //   T1: líneas en pdfplumber top 384,404,424,444,464 → pdf-lib 408,388,368,348,328
+      //   T2: líneas en pdfplumber top 590,610,630,650,670 → pdf-lib 202,182,162,142,122
+      [408, 388, 368, 348, 328, 202, 182, 162, 142, 122].forEach(y => {
+        page.drawLine({
+          start: { x: LINE_X0, y },
+          end:   { x: LINE_X1, y },
+          thickness: 0.5,
+          color: C_LINE,
+        });
+      });
+
+      // ── Descargar ────────────────────────────────────────────────────────────
+      const bytes = await pdfDoc.save();
+      const blob  = new Blob([bytes], { type: 'application/pdf' });
+      const url   = URL.createObjectURL(blob);
+      const a     = document.createElement('a');
+      a.href = url; a.download = `cotizacion_beko_${fi}.pdf`; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status.textContent = '✅ PDF descargado correctamente';
+
+    } catch (err) {
+      status.className = 'status error';
+      status.textContent = '❌ Error: ' + err.message;
+      console.error(err);
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+.netlify/
+.cursor/
+.venv/
+*.full.pdf
+cotizacion_beko_*.pdf
+.DS_Store

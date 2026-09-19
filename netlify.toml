@@ -1,0 +1,26 @@
+# Static-only site: no build, no functions, no edge → mínimo consumo de créditos.
+# El coste principal es bandwidth; la plantilla PDF está cacheada agresivamente.
+
+[build]
+  publish = "."
+  # Sin command = sin build minutes
+
+[build.processing]
+  skip_processing = true
+
+[[headers]]
+  for = "/cotizacion.pdf"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=300"
+
+# No functions / edge / forms needed
