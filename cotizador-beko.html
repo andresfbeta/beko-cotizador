@@ -2,278 +2,574 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>Cotizador — Hostal Beko</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
   <style>
+    :root {
+      --olive: #4d5229;
+      --olive-deep: #2b2e17;
+      --olive-soft: #6c7340;
+      --orange: #f07a3e;
+      --cream: #f0ebe3;
+      --paper: #faf7f2;
+      --ink: #1a1a1a;
+      --ink-muted: #57574c;
+      --rule: #d8d0c2;
+      --on-olive: #f4f1ea;
+      --on-olive-muted: rgba(244, 241, 234, 0.66);
+      --radius: 14px;
+      --sans: 'Poppins', system-ui, -apple-system, sans-serif;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      touch-action: manipulation; /* evita double-tap zoom en iOS */
+    }
+
     body {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f0ebe3;
+      font-family: var(--sans);
+      color: var(--ink);
       min-height: 100vh;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 40px 16px 60px;
+      padding: 36px 16px 72px;
+      background:
+        radial-gradient(ellipse 90% 55% at 10% -10%, rgba(240, 122, 62, 0.18), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 100% 0%, rgba(77, 82, 41, 0.22), transparent 50%),
+        linear-gradient(165deg, #e8e1d4 0%, var(--cream) 42%, #e4ddd2 100%);
     }
 
     .wrapper {
       width: 100%;
-      max-width: 520px;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
+      animation: rise 0.55s ease both;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ─── Card base ─────────────────────────────────────────────────────────── */
     .card {
-      background: #fff;
+      background: var(--paper);
       border-radius: 20px;
-      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+      border: 1px solid rgba(77, 82, 41, 0.08);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 18px 40px rgba(43, 46, 23, 0.1);
       overflow: hidden;
     }
 
-    /* ─── Header ────────────────────────────────────────────────────────────── */
     .header {
-      background: #4d5229;
-      padding: 20px 24px;
+      background: linear-gradient(145deg, var(--olive-soft) 0%, var(--olive) 48%, var(--olive-deep) 100%);
+      padding: 22px 22px 20px;
       display: flex;
       align-items: center;
       gap: 14px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 3px;
+      background: var(--orange);
     }
     .logo-badge {
-      background: #f07a3e;
-      border-radius: 9px;
-      padding: 6px 10px 5px;
+      background: var(--orange);
+      border-radius: 10px;
+      padding: 7px 11px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       line-height: 1;
       flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(173, 73, 23, 0.28);
     }
-    .logo-badge .hostal { font-size: 7px; color: #fff; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 1px; }
-    .logo-badge .beko   { font-size: 22px; color: #fff; font-weight: 800; font-style: italic; letter-spacing: -0.5px; }
-    .header-text h1 { font-size: 15px; font-weight: 700; color: #fff; }
-    .header-text p  { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 3px; font-weight: 400; }
+    .logo-badge .hostal {
+      font-size: 7px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .logo-badge .beko {
+      font-size: 22px;
+      color: #fff;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -0.5px;
+    }
+    .header-text h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--on-olive);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .header-text p {
+      font-size: 0.75rem;
+      color: var(--on-olive-muted);
+      margin-top: 4px;
+      font-weight: 400;
+      line-height: 1.35;
+    }
 
-    /* ─── Form body ─────────────────────────────────────────────────────────── */
-    .body { padding: 24px; }
+    /* Tablero de total */
+    .total-board {
+      margin: 18px 0 0;
+      padding: 14px 16px;
+      background: var(--olive);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 8px 20px rgba(43, 46, 23, 0.14);
+      grid-column: 1 / -1;
+    }
+    .total-board .tb-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--on-olive-muted);
+    }
+    .total-board .tb-amount {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.2s ease;
+    }
+    .total-board.tick .tb-amount { transform: scale(1.04); }
+
+    .body { padding: 22px 22px 24px; }
 
     .section-label {
-      font-size: 10px;
+      font-size: 0.68rem;
       font-weight: 700;
-      letter-spacing: 0.9px;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #b0a898;
+      color: var(--olive-soft);
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .section-label + * { /* reset */ }
-    .body > .section-label:not(:first-child) { margin-top: 22px; }
-
-    /* File drop */
-    .file-zone {
-      border: 1.5px dashed #ddd8d1;
-      border-radius: 10px;
-      padding: 18px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      background: #faf8f5;
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
     }
-    .file-zone:hover { border-color: #4d5229; background: #f2efe8; }
-    .file-zone.loaded { border-style: solid; border-color: #4d5229; background: #f2efe8; }
-    .file-zone input { display: none; }
-    .file-icon  { font-size: 20px; margin-bottom: 5px; }
-    .file-label { font-size: 12px; color: #999; font-weight: 400; }
-    .file-zone.loaded .file-label { color: #4d5229; font-weight: 600; }
+    .body > .section-label:not(:first-child) { margin-top: 26px; }
 
-    /* Form grid */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 14px 12px;
+      align-items: start;
     }
-    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
     .field.full { grid-column: 1 / -1; }
 
     label {
-      font-size: 10px;
+      font-size: 0.68rem;
       font-weight: 600;
-      color: #999;
-      letter-spacing: 0.5px;
+      color: var(--ink-muted);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
     input[type="date"],
     input[type="number"],
     input[type="text"] {
-      border: 1.5px solid #e5e0d8;
-      border-radius: 8px;
-      padding: 9px 12px;
-      font-size: 13px;
-      font-family: 'Poppins', sans-serif;
-      color: #1a1a1a;
+      border: 1.5px solid var(--rule);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 16px;
+      font-family: var(--sans);
+      color: var(--ink);
       background: #fff;
       outline: none;
       transition: border-color 0.18s, box-shadow 0.18s;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
       font-weight: 400;
     }
-    /* Mantener picker nativo en iOS/Android (no anular appearance en date) */
     input[type="number"],
     input[type="text"] {
       -webkit-appearance: none;
       appearance: none;
     }
     input[type="date"] {
-      -webkit-appearance: auto;
-      appearance: auto;
-      min-height: 40px;
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: 44px;
+      line-height: 1.25;
     }
     input:focus {
-      border-color: #4d5229;
-      box-shadow: 0 0 0 3px rgba(77,82,41,0.1);
+      border-color: var(--olive);
+      box-shadow: 0 0 0 3px rgba(77, 82, 41, 0.14);
+    }
+    input:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 2px;
     }
     input[readonly] {
-      background: #f4f1ea;
-      color: #4d5229;
+      background: rgba(77, 82, 41, 0.06);
+      color: var(--olive);
       font-weight: 600;
       cursor: default;
     }
-    input::placeholder { color: #ccc; }
+    input::placeholder { color: #b8b0a4; }
 
-    /* ─── Botón ─────────────────────────────────────────────────────────────── */
     .btn {
       width: 100%;
-      padding: 12px 16px;
-      background: #4d5229;
+      padding: 14px 18px;
+      background: var(--orange);
       color: #fff;
       border: none;
-      border-radius: 9px;
-      font-size: 13px;
-      font-family: 'Poppins', sans-serif;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: var(--sans);
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.18s, opacity 0.18s;
-      margin-top: 22px;
-      letter-spacing: 0.1px;
+      transition: background 0.18s, transform 0.15s, box-shadow 0.18s, opacity 0.18s;
+      margin-top: 24px;
+      letter-spacing: 0.01em;
+      box-shadow: 0 8px 20px rgba(240, 122, 62, 0.32);
     }
-    .btn:hover:not(:disabled) { background: #3a3e1e; }
-    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn:hover:not(:disabled) {
+      background: #e06a2e;
+      transform: translateY(-1px);
+    }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--olive);
+      outline-offset: 3px;
+    }
 
-    .status { text-align: center; font-size: 12px; margin-top: 10px; min-height: 16px; color: #4d5229; font-weight: 500; }
-    .status.error { color: #c0392b; }
-    .hint { font-size: 11px; color: #c0b8ad; text-align: center; margin-top: 6px; }
+    .status {
+      text-align: center;
+      font-size: 0.78rem;
+      margin-top: 12px;
+      min-height: 1.1em;
+      color: var(--olive);
+      font-weight: 500;
+    }
+    .status.error { color: #a33b2e; }
+    .hint {
+      font-size: 0.72rem;
+      color: #a89f92;
+      text-align: center;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
 
-    /* ─── Preview ───────────────────────────────────────────────────────────── */
     .preview-card {
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 2px 24px rgba(0,0,0,0.08);
+      background: var(--paper);
+      border-radius: 0;
+      border: none;
       overflow: hidden;
-      display: none;
+    }
+
+    /* Modal de confirmación — siempre centrado en viewport */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+               max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      background: rgba(43, 46, 23, 0.58);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      box-sizing: border-box;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .modal-overlay[hidden] {
+      display: none !important;
+    }
+    .modal-sheet {
+      width: 100%;
+      max-width: 420px;
+      max-height: min(86dvh, 680px);
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      background: var(--paper);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(43, 46, 23, 0.32);
+      overflow: hidden;
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.25s ease;
+    }
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0) scale(1);
+    }
+    .modal-top {
+      padding: 16px 18px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--rule);
+      flex-shrink: 0;
+    }
+    .modal-top h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--olive);
+      letter-spacing: -0.02em;
+    }
+    .modal-close {
+      border: none;
+      background: rgba(77, 82, 41, 0.08);
+      color: var(--olive);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      font-size: 1.25rem;
+      line-height: 1;
+      cursor: pointer;
+      font-family: var(--sans);
+      flex-shrink: 0;
+    }
+    .modal-close:focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 2px;
+    }
+    .modal-scroll {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1 1 auto;
+      min-height: 0;
+      overscroll-behavior: contain;
+    }
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px 16px max(16px, env(safe-area-inset-bottom));
+      border-top: 1px solid var(--rule);
+      flex-shrink: 0;
+      background: var(--paper);
+    }
+    .modal-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .modal-btn-cancel { width: 100%; }
+    .modal-share-hint {
+      margin: 0;
+      font-size: 0.72rem;
+      line-height: 1.4;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+    .btn-ghost {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--rule);
+      background: #fff;
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: var(--olive); }
+    .btn-confirm {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--orange);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(240, 122, 62, 0.28);
+    }
+    .btn-confirm:hover { background: #e06a2e; }
+    .btn-confirm:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+    .btn-send {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--olive);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(77, 82, 41, 0.22);
+    }
+    .btn-send:hover { background: #3d4222; }
+    .btn-send:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+    body.modal-open {
+      overflow: hidden;
+      touch-action: none;
     }
 
     .prev-header {
-      background: #4d5229;
-      padding: 16px 22px;
+      background: var(--olive);
+      padding: 16px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .prev-header .logo-badge { }
     .prev-cotnum {
-      font-size: 10px;
+      font-size: 0.65rem;
       font-weight: 700;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 0.8px;
+      color: var(--on-olive-muted);
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .prev-body { padding: 22px 24px 28px; }
+    .prev-body { padding: 22px 22px 26px; }
 
-    /* Meta encabezado carta */
-    .prev-meta { margin-bottom: 18px; }
-    .prev-meta .fecha-ciudad { font-size: 12px; color: #555; line-height: 1.6; margin-bottom: 10px; }
-    .prev-meta .dest-nombre  { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 1px; }
-    .prev-meta .saludo       { font-size: 12px; color: #666; }
-
-    /* Divisor */
-    .divider { height: 1px; background: #eee; margin: 16px 0; }
-
-    /* Título sección */
-    .seccion-tit {
-      font-size: 12px;
+    .prev-meta { margin-bottom: 16px; }
+    .prev-meta .fecha-ciudad {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+    .prev-meta .dest-nombre {
+      font-size: 0.95rem;
       font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 8px;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .prev-meta .saludo { font-size: 0.8rem; color: var(--ink-muted); }
+
+    .divider { height: 1px; background: var(--rule); margin: 16px 0; }
+
+    .seccion-tit {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--olive);
+      margin-bottom: 10px;
+      letter-spacing: 0.02em;
     }
 
-    /* Tabla de cotización */
     .cot-table { width: 100%; border-collapse: collapse; }
-    .cot-table tr { border-bottom: 1px solid #f0ebe3; }
+    .cot-table tr { border-bottom: 1px solid rgba(216, 208, 194, 0.7); }
     .cot-table tr:last-child { border-bottom: none; }
     .cot-table td {
-      padding: 8px 12px;
-      font-size: 12px;
-      color: #555;
+      padding: 9px 10px;
+      font-size: 0.8rem;
+      color: var(--ink-muted);
       font-weight: 400;
     }
     .cot-table td:last-child {
       text-align: right;
       font-weight: 600;
-      color: #1a1a1a;
+      color: var(--ink);
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
     .cot-table tr.total-row td {
-      background: #4d5229;
+      background: var(--olive);
       color: #fff !important;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 0.85rem;
     }
 
-    /* Bloque descuento */
     .desc-bloque {
-      font-size: 11.5px;
-      color: #555;
+      font-size: 0.78rem;
+      color: var(--ink-muted);
       line-height: 1.55;
       margin: 14px 0 12px;
-      padding: 10px 13px;
-      background: #f6f3ec;
-      border-radius: 8px;
-      border-left: 3px solid #4d5229;
+      padding: 11px 13px;
+      background: rgba(77, 82, 41, 0.06);
+      border-radius: 10px;
+      border-left: 3px solid var(--orange);
     }
-    .desc-bloque strong { color: #4d5229; }
+    .desc-bloque strong { color: var(--olive); }
 
     .check-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 2px 0;
+      padding: 4px 0;
     }
     .check-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      accent-color: #4d5229;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--olive);
       cursor: pointer;
       flex-shrink: 0;
     }
     .check-row .check-label {
       text-transform: none;
       letter-spacing: 0;
-      font-size: 13px;
+      font-size: 0.88rem;
       font-weight: 500;
-      color: #333;
+      color: var(--ink);
       cursor: pointer;
     }
     #campoPorcentaje.disabled-field {
       opacity: 0.4;
       pointer-events: none;
+    }
+
+    @media (max-width: 480px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      body { padding: 20px 12px 56px; }
+      .body { padding: 20px 18px 22px; }
+      .total-board .tb-amount { font-size: 1.2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wrapper { animation: none; }
+      .modal-overlay, .modal-sheet { transition: none; }
+      .total-board .tb-amount, .btn { transition: none; }
     }
   </style>
 </head>
@@ -283,26 +579,15 @@
   <!-- ═══════ FORMULARIO ═══════ -->
   <div class="card">
     <div class="header">
-      <div class="logo-badge">
-        <span class="hostal">Hostal</span>
-        <span class="beko">beko</span>
-      </div>
       <div class="header-text">
-        <h1>Generador de Cotización</h1>
-        <p>Completa los campos y descarga el PDF</p>
+        <h1>Cotización</h1>
+        <p>Llena los datos y descarga el PDF listo para enviar</p>
       </div>
     </div>
 
     <div class="body">
 
-      <div class="section-label">1 — Template PDF</div>
-      <div class="file-zone" id="fileDrop" onclick="document.getElementById('pdfInput').click()">
-        <div class="file-icon">📄</div>
-        <div class="file-label" id="fileLabel">Cargando plantilla…</div>
-        <input type="file" id="pdfInput" accept=".pdf">
-      </div>
-
-      <div class="section-label">2 — Encabezado de la carta</div>
+      <div class="section-label">Para quién</div>
       <div class="form-grid">
         <div class="field">
           <label>Fecha del documento</label>
@@ -318,7 +603,7 @@
         </div>
       </div>
 
-      <div class="section-label">3 — Datos de la reserva</div>
+      <div class="section-label">La reserva</div>
       <div class="form-grid">
         <div class="field">
           <label>Fecha de ingreso</label>
@@ -337,8 +622,8 @@
           <input type="number" id="noches" placeholder="—" readonly>
         </div>
         <div class="field full">
-          <label>Valor por persona / noche ($)</label>
-          <input type="number" id="valorNoche" min="0" step="1000" placeholder="45.000">
+          <label>Valor por persona / noche</label>
+          <input type="text" id="valorNoche" inputmode="numeric" autocomplete="off" placeholder="$ 45.000">
         </div>
         <div class="field full">
           <div class="check-row">
@@ -350,58 +635,78 @@
           <label>Descuento (%)</label>
           <input type="number" id="porcentajeDescuento" min="0" max="100" step="1" value="11">
         </div>
+        <div class="total-board" id="totalBoard" aria-live="polite">
+          <div class="tb-label">Total reserva</div>
+          <div class="tb-amount" id="tbAmount">—</div>
+        </div>
       </div>
 
-      <button class="btn" id="btnGenerar" onclick="generarPDF()" disabled>
-        📥 Generar y descargar PDF
+      <button class="btn" id="btnGenerar" type="button" disabled>
+        Descargar PDF
       </button>
       <div class="status" id="status"></div>
-      <div class="hint">El PDF se descarga directamente en tu equipo</div>
-    </div>
-  </div>
-
-  <!-- ═══════ PREVIEW ═══════ -->
-  <div class="preview-card" id="previewCard">
-    <div class="prev-header">
-      <div class="logo-badge">
-        <span class="hostal">Hostal</span>
-        <span class="beko">beko</span>
-      </div>
-      <span class="prev-cotnum" id="prev-cotnum">Cotización #————</span>
-    </div>
-    <div class="prev-body">
-      <div class="prev-meta">
-        <div class="fecha-ciudad" id="prev-fechaCiudad">—</div>
-        <div class="dest-nombre" id="prev-destinatario">—</div>
-        <div class="saludo">Cordial saludo.</div>
-      </div>
-      <div class="divider"></div>
-      <div class="seccion-tit">Detalles de la cotización</div>
-      <table class="cot-table">
-        <tr><td>Fecha de ingreso</td><td id="p1-fi">—</td></tr>
-        <tr><td>Fecha salida</td><td id="p1-fs">—</td></tr>
-        <tr><td>Número de personas</td><td id="p1-pn">—</td></tr>
-        <tr><td>Cantidad de noches</td><td id="p1-nc">—</td></tr>
-        <tr><td>Valor por persona por noche</td><td id="p1-vn">—</td></tr>
-        <tr class="total-row"><td>Valor total de la reserva</td><td id="p1-total">—</td></tr>
-      </table>
-      <div id="descuentoPreview">
-        <div class="desc-bloque">
-          Si se realiza reserva por la totalidad del Hostal se podría hacer un descuento del <span id="prev-pct">11</span>% quedando el valor por persona por noche en <strong id="prev-vDesc">—</strong>.
-        </div>
-        <table class="cot-table">
-          <tr><td>Fecha de ingreso</td><td id="p2-fi">—</td></tr>
-          <tr><td>Fecha salida</td><td id="p2-fs">—</td></tr>
-          <tr><td>Número de personas</td><td id="p2-pn">—</td></tr>
-          <tr><td>Cantidad de noches</td><td id="p2-nc">—</td></tr>
-          <tr><td>Valor por persona por noche</td><td id="p2-vn">—</td></tr>
-          <tr class="total-row"><td>Valor total de la reserva</td><td id="p2-total">—</td></tr>
-        </table>
-      </div>
+      <div class="hint">Incluye las 4 páginas de la cotización</div>
     </div>
   </div>
 
 </div><!-- /wrapper -->
+
+  <!-- ═══════ MODAL CONFIRMACIÓN ═══════ -->
+  <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" hidden>
+    <div class="modal-sheet" role="document">
+      <div class="modal-top">
+        <h2 id="confirmTitle">Confirmar cotización</h2>
+        <button type="button" class="modal-close" id="btnCerrarModal" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-scroll">
+        <div class="preview-card" id="previewCard">
+          <div class="prev-header">
+            <span class="prev-cotnum" id="prev-cotnum">Cotización #————</span>
+          </div>
+          <div class="prev-body">
+            <div class="prev-meta">
+              <div class="fecha-ciudad" id="prev-fechaCiudad">—</div>
+              <div class="dest-nombre" id="prev-destinatario">—</div>
+              <div class="saludo">Cordial saludo.</div>
+            </div>
+            <div class="divider"></div>
+            <div class="seccion-tit">Detalles de la cotización</div>
+            <table class="cot-table">
+              <tr><td>Fecha de ingreso</td><td id="p1-fi">—</td></tr>
+              <tr><td>Fecha salida</td><td id="p1-fs">—</td></tr>
+              <tr><td>Número de personas</td><td id="p1-pn">—</td></tr>
+              <tr><td>Cantidad de noches</td><td id="p1-nc">—</td></tr>
+              <tr><td>Valor por persona por noche</td><td id="p1-vn">—</td></tr>
+              <tr class="total-row"><td>Valor total de la reserva</td><td id="p1-total">—</td></tr>
+            </table>
+            <div id="descuentoPreview" hidden>
+              <div class="desc-bloque">
+                Si se realiza reserva por la totalidad del Hostal se podría hacer un descuento del <span id="prev-pct">11</span>% quedando el valor por persona por noche en <strong id="prev-vDesc">—</strong>.
+              </div>
+              <table class="cot-table">
+                <tr><td>Fecha de ingreso</td><td id="p2-fi">—</td></tr>
+                <tr><td>Fecha salida</td><td id="p2-fs">—</td></tr>
+                <tr><td>Número de personas</td><td id="p2-pn">—</td></tr>
+                <tr><td>Cantidad de noches</td><td id="p2-nc">—</td></tr>
+                <tr><td>Valor por persona por noche</td><td id="p2-vn">—</td></tr>
+                <tr class="total-row"><td>Valor total de la reserva</td><td id="p2-total">—</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <div class="modal-actions-row">
+          <button type="button" class="btn-confirm" id="btnDescargarPdf">Descargar</button>
+          <button type="button" class="btn-send" id="btnEnviarPdf">Enviar</button>
+        </div>
+        <button type="button" class="btn-ghost modal-btn-cancel" id="btnCancelarModal">Cancelar</button>
+        <p class="modal-share-hint" id="modalShareHint">
+          Enviar abre el menú del celular para elegir WhatsApp personal o Business.
+        </p>
+      </div>
+    </div>
+  </div>
 
 <script>
   const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -459,53 +764,57 @@
     { text_y:  79, cover_y:  69, h: 32, isTotal: true },
   ];
 
-  let pdfBytes = null;
-  const TEMPLATE_PDF = 'cotizacion.pdf';
-  let poppinsRegBytes = null;
-  let poppinsBdBytes = null;
+  /** Alta calidad solo para rasterizar la página 1 (datos editables). */
+  let pdfBytesRender = null;
+  /** JPEG ~200 DPI: páginas 2–4 en el PDF final (evita arrastrar el PDF de 13 MB). */
+  let pdfBytesExtra = null;
+  const TEMPLATE_RENDER_CANDIDATES = [
+    'cotizacion.full.backup-addr.pdf',
+    'cotizacion.pdf',
+  ];
+  const TEMPLATE_EXTRA_PAGES = 'cotizacion.pdf';
 
-  async function loadPoppinsBytes() {
-    if (!poppinsRegBytes || !poppinsBdBytes) {
-      const [reg, bd] = await Promise.all([
-        fetch('fonts/Poppins-Regular.ttf').then(r => {
-          if (!r.ok) throw new Error('No se pudo cargar Poppins Regular');
-          return r.arrayBuffer();
-        }),
-        fetch('fonts/Poppins-Bold.ttf').then(r => {
-          if (!r.ok) throw new Error('No se pudo cargar Poppins Bold');
-          return r.arrayBuffer();
-        }),
-      ]);
-      poppinsRegBytes = reg;
-      poppinsBdBytes = bd;
-    }
-    return { reg: poppinsRegBytes, bd: poppinsBdBytes };
-  }
-
-  function markTemplateLoaded(name) {
-    document.getElementById('fileDrop').classList.add('loaded');
-    document.getElementById('fileLabel').innerHTML =
-      `✅  <strong>${name}</strong> listo <span style="font-weight:400;color:#999">(clic para cambiar)</span>`;
+  function markTemplateLoaded() {
     checkReady();
   }
 
   function markTemplateError(msg) {
-    document.getElementById('fileDrop').classList.remove('loaded');
-    document.getElementById('fileLabel').innerHTML =
-      `⚠️ ${msg}<br><span style="font-weight:400">Haz clic para cargar <strong>${TEMPLATE_PDF}</strong></span>`;
+    const status = document.getElementById('status');
+    status.className = 'status error';
+    status.textContent = '❌ No se pudo cargar la plantilla: ' + msg;
   }
 
   // ── Precarga automática del template ───────────────────────────────────────
+  async function fetchPdfBytes(path) {
+    const res = await fetch(path + '?v=10', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`No se encontró ${path} (${res.status})`);
+    const buf = await res.arrayBuffer();
+    if (!buf || buf.byteLength < 1000) {
+      throw new Error(`El archivo ${path} está vacío o incompleto`);
+    }
+    return buf;
+  }
+
   (async function loadDefaultTemplate() {
-    const label = document.getElementById('fileLabel');
     try {
-      label.textContent = 'Cargando plantilla…';
-      const res = await fetch(TEMPLATE_PDF + '?v=1', { cache: 'force-cache' });
-      if (!res.ok) throw new Error(`No se encontró ${TEMPLATE_PDF} (${res.status})`);
-      const buf = await res.arrayBuffer();
-      if (!buf || buf.byteLength < 1000) throw new Error('El archivo PDF está vacío o incompleto');
-      pdfBytes = buf;
-      markTemplateLoaded(TEMPLATE_PDF);
+      let lastErr = null;
+      for (const path of TEMPLATE_RENDER_CANDIDATES) {
+        try {
+          pdfBytesRender = await fetchPdfBytes(path);
+          break;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      if (!pdfBytesRender) throw lastErr || new Error('No hay plantilla para la página 1');
+
+      try {
+        pdfBytesExtra = await fetchPdfBytes(TEMPLATE_EXTRA_PAGES);
+      } catch {
+        pdfBytesExtra = pdfBytesRender;
+      }
+
+      markTemplateLoaded();
     } catch (err) {
       markTemplateError(err.message || 'Error al precargar');
       console.warn('No se pudo precargar el PDF:', err);
@@ -541,13 +850,6 @@
     if (fsEl.value && fsEl.value < minSalida) fsEl.value = minSalida;
   }
 
-  // ── Carga PDF manual (opcional, para cambiar plantilla) ─────────────────────
-  document.getElementById('pdfInput').addEventListener('change', async e => {
-    const file = e.target.files[0]; if (!file) return;
-    pdfBytes = await file.arrayBuffer();
-    markTemplateLoaded(file.name);
-  });
-
   // ── Helpers formato ─────────────────────────────────────────────────────────
   function fmtFecha(s) {
     if (!s) return '';
@@ -556,6 +858,26 @@
   }
   function fmtCOP(n) {
     return '$ ' + n.toLocaleString('es-CO');
+  }
+
+  /** Solo dígitos → número entero (acepta "$ 45.000") */
+  function parseCOP(str) {
+    const digits = String(str || '').replace(/\D/g, '');
+    if (!digits) return 0;
+    return parseInt(digits, 10) || 0;
+  }
+
+  /** Formato en vivo para el input de valor: $ 45.000 */
+  function formatCOPInput(n) {
+    if (!n || n <= 0) return '';
+    return '$ ' + n.toLocaleString('es-CO');
+  }
+
+  function syncValorNocheInput() {
+    const el = document.getElementById('valorNoche');
+    const n = parseCOP(el.value);
+    const next = formatCOPInput(n);
+    if (el.value !== next) el.value = next;
   }
 
   /** Iniciales: primera letra de cada palabra del destinatario → "Claudia Collazos" → "CC" */
@@ -615,9 +937,14 @@
     syncDateLimits();
     calcNoches();
   });
-  ['personas','valorNoche','porcentajeDescuento'].forEach(id =>
+  ['personas','porcentajeDescuento'].forEach(id =>
     document.getElementById(id).addEventListener('input', actualizarPreview)
   );
+  document.getElementById('valorNoche').addEventListener('input', () => {
+    syncValorNocheInput();
+    actualizarPreview();
+  });
+  document.getElementById('valorNoche').addEventListener('blur', syncValorNocheInput);
   ['destinatario','ciudad','fechaDoc'].forEach(id => {
     document.getElementById(id).addEventListener('input',  actualizarPreview);
     document.getElementById(id).addEventListener('change', actualizarPreview);
@@ -636,9 +963,105 @@
   function syncDescuentoUI() {
     const on = document.getElementById('incluirDescuento').checked;
     document.getElementById('campoPorcentaje').classList.toggle('disabled-field', !on);
-    document.getElementById('descuentoPreview').style.display = on ? 'block' : 'none';
+    document.getElementById('descuentoPreview').hidden = !on;
   }
   syncDescuentoUI();
+
+  // ── Modal confirmación ──────────────────────────────────────────────────────
+  const confirmModal = document.getElementById('confirmModal');
+  let shareFilePromise = null;
+  let shareFileReady = null;
+
+  function resetSharePdfCache() {
+    shareFilePromise = null;
+    shareFileReady = null;
+  }
+
+  function prefetchSharePdf() {
+    resetSharePdfCache();
+    shareFilePromise = buildPdfBlob()
+      .then((data) => {
+        const file = new File([data.blob], data.filename, {
+          type: 'application/pdf',
+          lastModified: Date.now(),
+        });
+        shareFileReady = { file, pageCount: data.pageCount };
+        return shareFileReady;
+      })
+      .catch((err) => {
+        console.warn('Precarga para compartir:', err);
+        shareFileReady = null;
+        return null;
+      });
+  }
+
+  /** Menú nativo del sistema (WhatsApp / WhatsApp Business / otras apps). */
+  async function sharePdfWithChooser(file) {
+    if (!navigator.share) return { ok: false, reason: 'no-share' };
+
+    const payloads = [{ files: [file] }];
+    if (file.name) payloads.push({ files: [file], title: file.name });
+
+    for (const payload of payloads) {
+      if (navigator.canShare && !navigator.canShare(payload)) continue;
+      try {
+        await navigator.share(payload);
+        return { ok: true };
+      } catch (err) {
+        if (err.name === 'AbortError') return { ok: false, reason: 'abort' };
+        if (payload === payloads[payloads.length - 1]) throw err;
+      }
+    }
+    return { ok: false, reason: 'no-share' };
+  }
+
+  function abrirModalConfirmacion() {
+    actualizarPreview();
+    prefetchSharePdf();
+    confirmModal.hidden = false;
+    // Forzar reflow para que la transición de entrada se vea
+    void confirmModal.offsetWidth;
+    confirmModal.classList.add('open');
+    document.body.classList.add('modal-open');
+    document.getElementById('btnDescargarPdf').focus();
+  }
+
+  function cerrarModalConfirmacion() {
+    resetSharePdfCache();
+    confirmModal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+    const finish = () => {
+      if (!confirmModal.classList.contains('open')) confirmModal.hidden = true;
+    };
+    confirmModal.addEventListener('transitionend', finish, { once: true });
+    setTimeout(finish, 250);
+    document.getElementById('btnGenerar').focus();
+  }
+
+  document.getElementById('btnGenerar').addEventListener('click', abrirModalConfirmacion);
+  document.getElementById('btnCerrarModal').addEventListener('click', cerrarModalConfirmacion);
+  document.getElementById('btnCancelarModal').addEventListener('click', cerrarModalConfirmacion);
+  function setModalPdfButtonsBusy(busy) {
+    document.getElementById('btnDescargarPdf').disabled = busy;
+    document.getElementById('btnEnviarPdf').disabled = busy;
+    document.getElementById('btnCancelarModal').disabled = busy;
+  }
+
+  document.getElementById('btnDescargarPdf').addEventListener('click', () => {
+    cerrarModalConfirmacion();
+    descargarPDF();
+  });
+  document.getElementById('btnEnviarPdf').addEventListener('click', () => {
+    enviarPDF();
+  });
+  confirmModal.addEventListener('click', (e) => {
+    if (e.target === confirmModal) cerrarModalConfirmacion();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && confirmModal.classList.contains('open')) {
+      cerrarModalConfirmacion();
+    }
+  });
 
   // ── Preview ─────────────────────────────────────────────────────────────────
   function actualizarPreview() {
@@ -646,7 +1069,7 @@
     const fs       = document.getElementById('fechaSalida').value;
     const personas = parseInt(document.getElementById('personas').value)   || 0;
     const noches   = parseInt(document.getElementById('noches').value)     || 0;
-    const valor    = parseInt(document.getElementById('valorNoche').value) || 0;
+    const valor    = parseCOP(document.getElementById('valorNoche').value);
     const fechaDoc = document.getElementById('fechaDoc').value;
     const ciudad   = document.getElementById('ciudad').value.trim() || 'Cali';
     const dest     = document.getElementById('destinatario').value.trim();
@@ -667,10 +1090,13 @@
       : 'Cotización #————';
 
     document.getElementById('prev-pct').textContent = String(pct);
-    document.getElementById('descuentoPreview').style.display = incluirDesc ? 'block' : 'none';
+    document.getElementById('descuentoPreview').hidden = !incluirDesc;
 
-    // Tablas
+    // Tablas + tablero de total
     const hayTabla = fi && fs && personas > 0 && noches > 0 && valor > 0;
+    const board = document.getElementById('totalBoard');
+    const tbAmount = document.getElementById('tbAmount');
+
     if (hayTabla) {
       const total1 = personas * noches * valor;
       const vDesc  = Math.round(valor * (1 - pct / 100));
@@ -689,16 +1115,23 @@
       document.getElementById('p2-nc').textContent    = noches;
       document.getElementById('p2-vn').textContent    = fmtCOP(vDesc);
       document.getElementById('p2-total').textContent = fmtCOP(total2);
+
+      const nextAmount = fmtCOP(total1);
+      if (tbAmount.textContent !== nextAmount) {
+        tbAmount.textContent = nextAmount;
+        board.classList.remove('tick');
+        void board.offsetWidth;
+        board.classList.add('tick');
+      }
     } else {
       ['p1-fi','p1-fs','p1-pn','p1-nc','p1-vn','p1-total',
        'p2-fi','p2-fs','p2-pn','p2-nc','p2-vn','p2-total'].forEach(id =>
         document.getElementById(id).textContent = '—'
       );
       document.getElementById('prev-vDesc').textContent = '—';
+      tbAmount.textContent = '—';
     }
 
-    const show = fechaDoc || dest || hayTabla;
-    document.getElementById('previewCard').style.display = show ? 'block' : 'none';
     checkReady();
   }
 
@@ -707,224 +1140,295 @@
     const fs       = document.getElementById('fechaSalida').value;
     const personas = parseInt(document.getElementById('personas').value)   || 0;
     const noches   = parseInt(document.getElementById('noches').value)     || 0;
-    const valor    = parseInt(document.getElementById('valorNoche').value) || 0;
+    const valor    = parseCOP(document.getElementById('valorNoche').value);
     document.getElementById('btnGenerar').disabled =
-      !(pdfBytes && fi && fs && personas>0 && noches>0 && valor>0);
+      !(pdfBytesRender && pdfBytesExtra && fi && fs && personas>0 && noches>0 && valor>0);
+  }
+
+  const PDF_PAGE_W = 612;
+  const PDF_PAGE_H = 792;
+  /** ~216 DPI de salida (72×3) para fondo nítido en impresión/pantalla */
+  const PDF_RENDER_SCALE = 3;
+
+  function canvasToPngBytes(canvas) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('No se pudo exportar la página a PNG'));
+            return;
+          }
+          blob.arrayBuffer().then(resolve);
+        },
+        'image/png',
+      );
+    });
+  }
+
+  async function ensurePdfJs() {
+    if (window.pdfjsLib) return window.pdfjsLib;
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('No se pudo cargar PDF.js'));
+      document.head.appendChild(s);
+    });
+    const lib = window.pdfjsLib;
+    lib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    return lib;
+  }
+
+  /** Página 1: plantilla + datos en canvas (misma vista que el lector PDF) → PNG */
+  async function buildPage1PngBytes(templateBytes, payload) {
+    const {
+      fi, fs, personas, noches, valor, fechaDoc, ciudad, dest,
+      incluirDesc, pct, total1, vDesc, total2,
+    } = payload;
+
+    const pdfjsLib = await ensurePdfJs();
+    await Promise.all([
+      document.fonts.load('400 9.5px Poppins'),
+      document.fonts.load('400 10px Poppins'),
+      document.fonts.load('700 7px Poppins'),
+      document.fonts.load('700 10px Poppins'),
+    ]);
+
+    const pdf = await pdfjsLib.getDocument({ data: templateBytes.slice(0) }).promise;
+    const pdfPage = await pdf.getPage(1);
+    const vp = pdfPage.getViewport({ scale: PDF_RENDER_SCALE });
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width;
+    canvas.height = vp.height;
+    const ctx = canvas.getContext('2d');
+    await pdfPage.render({ canvasContext: ctx, viewport: vp }).promise;
+
+    const S = vp.width / PDF_PAGE_W;
+    const C_WHITE = '#ffffff';
+    const C_OLIVE = '#4d5229';
+    const C_DARK = '#262626';
+    const C_LINE = '#bfbfbf';
+
+    const fillRectPdf = (x, y, w, h, fill) => {
+      ctx.fillStyle = fill;
+      ctx.fillRect(x * S, vp.height - (y + h) * S, w * S, h * S);
+    };
+    const drawLinePdf = (x0, y, x1) => {
+      ctx.strokeStyle = C_LINE;
+      ctx.lineWidth = 0.5 * S;
+      ctx.beginPath();
+      ctx.moveTo(x0 * S, vp.height - y * S);
+      ctx.lineTo(x1 * S, vp.height - y * S);
+      ctx.stroke();
+    };
+    const setFont = (fs, weight) => {
+      ctx.font = `${weight} ${fs * S}px Poppins, sans-serif`;
+    };
+    const drawTextPdf = (text, x, y, fs, weight, color, alignRightAt) => {
+      setFont(fs, weight);
+      ctx.fillStyle = color;
+      let tx = x * S;
+      if (alignRightAt != null) {
+        tx = alignRightAt * S - ctx.measureText(text).width;
+      }
+      ctx.fillText(text, tx, vp.height - y * S);
+    };
+    const wrapLinesCanvas = (text, maxWidth, fs) => {
+      setFont(fs, 400);
+      const words = text.split(/\s+/);
+      const lines = [];
+      let current = '';
+      for (const word of words) {
+        const next = current ? `${current} ${word}` : word;
+        if (ctx.measureText(next).width / S <= maxWidth) current = next;
+        else {
+          if (current) lines.push(current);
+          current = word;
+        }
+      }
+      if (current) lines.push(current);
+      return lines;
+    };
+    const putValue = (text, row) => {
+      const { text_y, cover_y, h, isTotal } = row;
+      fillRectPdf(VAL_COVER_X, cover_y, VAL_COVER_W, h, isTotal ? C_OLIVE : C_WHITE);
+      const fs = isTotal ? 10 : 9.5;
+      drawTextPdf(
+        text, 0, text_y, fs, isTotal ? 700 : 400,
+        isTotal ? C_WHITE : C_DARK, VAL_TEXT_XR,
+      );
+    };
+
+    fillRectPdf(30, 677, 360, 58, C_WHITE);
+    if (fechaDoc) {
+      drawTextPdf(fmtFecha(fechaDoc), HDR_X, 724, 9.5, 400, C_DARK);
+    }
+    drawTextPdf(`${ciudad} – Colombia`, HDR_X, 709, 9.5, 400, C_DARK);
+    if (dest) drawTextPdf(dest, HDR_X, 679, 9.5, 400, C_DARK);
+
+    const cotCode = codigoCotizacion(fechaDoc, dest);
+    const cotLabel = cotCode ? `Cotización #${cotCode}` : 'Cotización #————';
+    fillRectPdf(455, 666, 140, 16, C_WHITE);
+    setFont(7, 700);
+    const cotTw = ctx.measureText(cotLabel).width / S;
+    const logoMidX = (461.3 + 578.9) / 2;
+    drawTextPdf(cotLabel, logoMidX - cotTw / 2, 675, 7, 700, C_DARK);
+
+    const vals1 = [
+      fmtFecha(fi), fmtFecha(fs),
+      String(personas), String(noches),
+      fmtCOP(valor), fmtCOP(total1),
+    ];
+    T1.forEach((row, i) => putValue(vals1[i], row));
+
+    const linesT1 = [408, 388, 368, 348, 328];
+    const linesT2 = [202, 182, 162, 142, 122];
+    const LINE_X0 = 117;
+    const LINE_X1 = 495;
+
+    if (incluirDesc) {
+      fillRectPdf(34, 218, 548, 40, C_WHITE);
+      const descText =
+        `Si se realiza reserva por la totalidad del Hostal se podría hacer un descuento del ${pct}% quedando el valor por persona por noche en ${fmtCOP(vDesc)}.`;
+      const descYs = [242, 227, 212];
+      wrapLinesCanvas(descText, 530, 10).forEach((line, i) => {
+        drawTextPdf(line, 38, descYs[i] ?? (242 - i * 15), 10, 400, C_DARK);
+      });
+      const vals2 = [
+        fmtFecha(fi), fmtFecha(fs),
+        String(personas), String(noches),
+        fmtCOP(vDesc), fmtCOP(total2),
+      ];
+      T2.forEach((row, i) => putValue(vals2[i], row));
+      [...linesT1, ...linesT2].forEach(y => drawLinePdf(LINE_X0, y, LINE_X1));
+    } else {
+      fillRectPdf(30, 55, 545, 215, C_WHITE);
+      linesT1.forEach(y => drawLinePdf(LINE_X0, y, LINE_X1));
+    }
+
+    return canvasToPngBytes(canvas);
   }
 
   // ── Generación PDF ──────────────────────────────────────────────────────────
-  async function generarPDF() {
+  async function buildPdfBlob() {
+    const fi       = document.getElementById('fechaIngreso').value;
+    const fs       = document.getElementById('fechaSalida').value;
+    const personas = parseInt(document.getElementById('personas').value);
+    const noches   = parseInt(document.getElementById('noches').value);
+    const valor    = parseCOP(document.getElementById('valorNoche').value);
+    const fechaDoc = document.getElementById('fechaDoc').value;
+    const ciudad   = document.getElementById('ciudad').value.trim() || 'Cali';
+    const dest     = document.getElementById('destinatario').value.trim();
+    const incluirDesc = document.getElementById('incluirDescuento').checked;
+    const pct      = getDescuentoPct();
+
+    const total1 = personas * noches * valor;
+    const vDesc  = Math.round(valor * (1 - pct / 100));
+    const total2 = personas * noches * vDesc;
+
+    const page1Png = await buildPage1PngBytes(pdfBytesRender, {
+      fi, fs, personas, noches, valor, fechaDoc, ciudad, dest,
+      incluirDesc, pct, total1, vDesc, total2,
+    });
+
+    const { PDFDocument } = PDFLib;
+    const templateDoc = await PDFDocument.load(pdfBytesExtra);
+    const outDoc = await PDFDocument.create();
+    const page1Img = await outDoc.embedPng(new Uint8Array(page1Png));
+    const p1 = outDoc.addPage([PDF_PAGE_W, PDF_PAGE_H]);
+    const drawOpts = { x: 0, y: 0, width: PDF_PAGE_W, height: PDF_PAGE_H };
+    p1.drawImage(page1Img, drawOpts);
+
+    const extraPages = await outDoc.copyPages(templateDoc, [1, 2, 3]);
+    for (const page of extraPages) outDoc.addPage(page);
+
+    const bytes = await outDoc.save({
+      useObjectStreams: false,
+      addDefaultPage: false,
+      objectsPerTick: 50,
+    });
+    const filename = nombreArchivoPdf(fechaDoc, dest);
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    return { blob, filename, pageCount: outDoc.getPageCount(), dest };
+  }
+
+  function triggerPdfDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function descargarPDF() {
     const status = document.getElementById('status');
     status.className = 'status';
     status.textContent = 'Procesando...';
+    setModalPdfButtonsBusy(true);
 
     try {
-      const fi       = document.getElementById('fechaIngreso').value;
-      const fs       = document.getElementById('fechaSalida').value;
-      const personas = parseInt(document.getElementById('personas').value);
-      const noches   = parseInt(document.getElementById('noches').value);
-      const valor    = parseInt(document.getElementById('valorNoche').value);
-      const fechaDoc = document.getElementById('fechaDoc').value;
-      const ciudad   = document.getElementById('ciudad').value.trim() || 'Cali';
-      const dest     = document.getElementById('destinatario').value.trim();
-      const incluirDesc = document.getElementById('incluirDescuento').checked;
-      const pct      = getDescuentoPct();
-
-      const total1 = personas * noches * valor;
-      const vDesc  = Math.round(valor * (1 - pct / 100));
-      const total2 = personas * noches * vDesc;
-
-      const { PDFDocument, rgb } = PDFLib;
-      const pdfDoc  = await PDFDocument.load(pdfBytes);
-      pdfDoc.registerFontkit(fontkit);
-      const page    = pdfDoc.getPages()[0];
-      const poppins = await loadPoppinsBytes();
-      const fontReg = await pdfDoc.embedFont(poppins.reg);
-      const fontBd  = await pdfDoc.embedFont(poppins.bd);
-
-      // Colores
-      const C_WHITE = rgb(1,    1,    1   );
-      const C_OLIVE = rgb(0.302,0.322,0.161);
-      const C_DARK  = rgb(0.15, 0.15, 0.15);
-      const C_WHITE_TXT = rgb(1,1,1);
-
-      /* ── Escribe un valor en la columna derecha de la tabla ─────────────────
-         - Borra el área con un rect del color correcto
-         - Escribe el texto right-aligned dentro de VAL_TEXT_XR
-      */
-      function putValue(text, row) {
-        const { text_y, cover_y, h, isTotal } = row;
-        const bgColor   = isTotal ? C_OLIVE : C_WHITE;
-        const textColor = isTotal ? C_WHITE_TXT : C_DARK;
-        const font      = isTotal ? fontBd : fontReg;
-        const fs        = isTotal ? 10 : 9.5;
-
-        // Rect de cobertura (borra placeholder del PDF)
-        page.drawRectangle({
-          x: VAL_COVER_X, y: cover_y,
-          width: VAL_COVER_W, height: h,
-          color: bgColor,
-        });
-
-        // Texto right-aligned
-        const tw = font.widthOfTextAtSize(text, fs);
-        page.drawText(text, {
-          x: VAL_TEXT_XR - tw, y: text_y,
-          size: fs, font, color: textColor,
-        });
-      }
-
-      /* ── Sobrescribe texto en el encabezado izquierdo ───────────────────────
-         - Borra el placeholder con rect blanco
-         - Escribe el nuevo texto
-      */
-      function putHeader(text, x, text_y, cover_y, cover_w, cover_h) {
-        page.drawRectangle({
-          x, y: cover_y, width: cover_w, height: cover_h,
-          color: C_WHITE,
-        });
-        page.drawText(text, {
-          x, y: text_y,
-          size: 9.5, font: fontReg, color: C_DARK,
-        });
-      }
-
-      function wrapLines(text, maxWidth, size, font) {
-        const words = text.split(/\s+/);
-        const lines = [];
-        let current = '';
-        for (const word of words) {
-          const next = current ? `${current} ${word}` : word;
-          if (font.widthOfTextAtSize(next, size) <= maxWidth) {
-            current = next;
-          } else {
-            if (current) lines.push(current);
-            current = word;
-          }
-        }
-        if (current) lines.push(current);
-        return lines;
-      }
-
-      // ── ENCABEZADO (wipe amplio; no bajar de y≈676 para no cortar "Cordial saludo.") ──
-      // Cordial saludo: pdfplumber top=120 bottom=130 → tops ~y=672
-      page.drawRectangle({
-        x: 30, y: 677, width: 360, height: 58,
-        color: C_WHITE,
-      });
-
-      if (fechaDoc) {
-        page.drawText(fmtFecha(fechaDoc), {
-          x: HDR_X, y: 724, size: 9.5, font: fontReg, color: C_DARK,
-        });
-      }
-      page.drawText(`${ciudad} – Colombia`, {
-        x: HDR_X, y: 709, size: 9.5, font: fontReg, color: C_DARK,
-      });
-      if (dest) {
-        page.drawText(dest, {
-          x: HDR_X, y: 679, size: 9.5, font: fontReg, color: C_DARK,
-        });
-      }
-
-      // ── Código bajo el logo: Cotización #2026-09-CC ─────────────────────────
-      // Logo ~x 461–579, texto original top=112 bottom=119 → y≈673
-      const cotCode = codigoCotizacion(fechaDoc, dest);
-      const cotLabel = cotCode ? `Cotización #${cotCode}` : 'Cotización #————';
-      page.drawRectangle({
-        x: 455, y: 666, width: 140, height: 16,
-        color: C_WHITE,
-      });
-      const cotSize = 7;
-      const cotTw = fontBd.widthOfTextAtSize(cotLabel, cotSize);
-      const logoMidX = (461.3 + 578.9) / 2;
-      page.drawText(cotLabel, {
-        x: logoMidX - cotTw / 2,
-        y: 675,
-        size: cotSize,
-        font: fontBd,
-        color: C_DARK,
-      });
-
-      // ── TABLA 1 ─────────────────────────────────────────────────────────────
-      const vals1 = [
-        fmtFecha(fi), fmtFecha(fs),
-        String(personas), String(noches),
-        fmtCOP(valor), fmtCOP(total1),
-      ];
-      T1.forEach((row, i) => putValue(vals1[i], row));
-
-      const C_LINE = rgb(0.75, 0.75, 0.75);
-      const LINE_X0 = 117, LINE_X1 = 495;
-      const linesT1 = [408, 388, 368, 348, 328];
-      const linesT2 = [202, 182, 162, 142, 122];
-
-      if (incluirDesc) {
-        // Párrafo original: L1 top=540 bot=550 x→572; L2 top=555 bot=565
-        // pdf-lib y = 792 - bottom → L1≈242, L2≈227
-        page.drawRectangle({
-          x: 34, y: 218, width: 548, height: 40,
-          color: C_WHITE,
-        });
-        const descText =
-          `Si se realiza reserva por la totalidad del Hostal se podría hacer un descuento del ${pct}% quedando el valor por persona por noche en ${fmtCOP(vDesc)}.`;
-        const descSize = 10;
-        const descLines = wrapLines(descText, 530, descSize, fontReg);
-        const descYs = [242, 227, 212];
-        descLines.forEach((line, i) => {
-          page.drawText(line, {
-            x: 38,
-            y: descYs[i] ?? (242 - i * 15),
-            size: descSize,
-            font: fontReg,
-            color: C_DARK,
-          });
-        });
-
-        const vals2 = [
-          fmtFecha(fi), fmtFecha(fs),
-          String(personas), String(noches),
-          fmtCOP(vDesc), fmtCOP(total2),
-        ];
-        T2.forEach((row, i) => putValue(vals2[i], row));
-
-        [...linesT1, ...linesT2].forEach(y => {
-          page.drawLine({
-            start: { x: LINE_X0, y },
-            end:   { x: LINE_X1, y },
-            thickness: 0.5,
-            color: C_LINE,
-          });
-        });
-      } else {
-        // Ocultar bloque de descuento + tabla 2 del template
-        page.drawRectangle({
-          x: 30, y: 55, width: 545, height: 215,
-          color: C_WHITE,
-        });
-        linesT1.forEach(y => {
-          page.drawLine({
-            start: { x: LINE_X0, y },
-            end:   { x: LINE_X1, y },
-            thickness: 0.5,
-            color: C_LINE,
-          });
-        });
-      }
-
-      // ── Descargar ────────────────────────────────────────────────────────────
-      const bytes = await pdfDoc.save();
-      const blob  = new Blob([bytes], { type: 'application/pdf' });
-      const url   = URL.createObjectURL(blob);
-      const a     = document.createElement('a');
-      a.href = url; a.download = nombreArchivoPdf(fechaDoc, dest); a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      status.textContent = '✅ PDF descargado correctamente';
-
+      const { blob, filename, pageCount } = await buildPdfBlob();
+      triggerPdfDownload(blob, filename);
+      status.textContent = `✅ PDF descargado (${pageCount} páginas)`;
     } catch (err) {
       status.className = 'status error';
       status.textContent = '❌ Error: ' + err.message;
       console.error(err);
+    } finally {
+      setModalPdfButtonsBusy(false);
+    }
+  }
+
+  async function enviarPDF() {
+    const status = document.getElementById('status');
+    const btnEnviar = document.getElementById('btnEnviarPdf');
+    const enviarLabel = 'Enviar';
+    status.className = 'status';
+    status.textContent = 'Preparando PDF…';
+    setModalPdfButtonsBusy(true);
+    btnEnviar.textContent = 'Preparando…';
+
+    try {
+      let ready = shareFileReady;
+      if (!ready && shareFilePromise) ready = await shareFilePromise;
+      if (!ready) {
+        const data = await buildPdfBlob();
+        ready = {
+          file: new File([data.blob], data.filename, {
+            type: 'application/pdf',
+            lastModified: Date.now(),
+          }),
+          pageCount: data.pageCount,
+        };
+      }
+
+      status.textContent = 'Elige WhatsApp o WhatsApp Business…';
+      btnEnviar.textContent = 'Abrir menú…';
+
+      const result = await sharePdfWithChooser(ready.file);
+
+      if (result.ok) {
+        cerrarModalConfirmacion();
+        status.textContent = `✅ PDF compartido (${ready.pageCount} páginas)`;
+        return;
+      }
+      if (result.reason === 'abort') {
+        status.textContent = 'Compartir cancelado';
+        return;
+      }
+
+      status.className = 'status error';
+      status.textContent =
+        '⚠️ Para elegir WhatsApp o Business, abre el cotizador en Chrome o Safari en el celular (no desde un visor de PDF).';
+    } catch (err) {
+      status.className = 'status error';
+      status.textContent = '❌ Error: ' + err.message;
+      console.error(err);
+    } finally {
+      setModalPdfButtonsBusy(false);
+      btnEnviar.textContent = enviarLabel;
     }
   }
 </script>
