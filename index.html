@@ -786,7 +786,7 @@
 
   // ── Precarga automática del template ───────────────────────────────────────
   async function fetchPdfBytes(path) {
-    const res = await fetch(path + '?v=10', { cache: 'no-store' });
+    const res = await fetch(path + '?v=12', { cache: 'no-store' });
     if (!res.ok) throw new Error(`No se encontró ${path} (${res.status})`);
     const buf = await res.arrayBuffer();
     if (!buf || buf.byteLength < 1000) {
@@ -1048,8 +1048,10 @@
   }
 
   document.getElementById('btnDescargarPdf').addEventListener('click', () => {
+    const ready = shareFileReady;
+    const pending = shareFilePromise;
     cerrarModalConfirmacion();
-    descargarPDF();
+    descargarPDF(ready, pending);
   });
   document.getElementById('btnEnviarPdf').addEventListener('click', () => {
     enviarPDF();
@@ -1353,23 +1355,39 @@
     return { blob, filename, pageCount: outDoc.getPageCount(), dest };
   }
 
+  /** Safari exige el <a> en el DOM y que la URL del blob siga viva mientras descarga. */
   function triggerPdfDownload(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
-  async function descargarPDF() {
+  async function descargarPDF(ready = null, pending = null) {
     const status = document.getElementById('status');
+
+    if (ready) {
+      triggerPdfDownload(ready.file, ready.file.name);
+      status.className = 'status';
+      status.textContent = `✅ PDF descargado (${ready.pageCount} páginas)`;
+      return;
+    }
+
     status.className = 'status';
     status.textContent = 'Procesando...';
     setModalPdfButtonsBusy(true);
 
     try {
-      const { blob, filename, pageCount } = await buildPdfBlob();
+      const pre = pending ? await pending : null;
+      const { blob, filename, pageCount } = pre
+        ? { blob: pre.file, filename: pre.file.name, pageCount: pre.pageCount }
+        : await buildPdfBlob();
       triggerPdfDownload(blob, filename);
       status.textContent = `✅ PDF descargado (${pageCount} páginas)`;
     } catch (err) {
